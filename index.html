@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rates of Change in Network Traffic · Team 7 Micro-Project</title>
+<meta name="description" content="Analysing changes in network traffic using rates of change — a Linear Algebra and Calculus micro-project (25DC201), Karunya Institute of Technology and Sciences.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a1114; --bg2:#0f181c; --panel:#121e23; --panel2:#17262c; --line:#22343b; --line2:#2d454e;
+  --ink:#e6eef0; --ink2:#a9bcc1; --ink3:#6f878e;
+  --amber:#ffb347; --cyan:#5ee6d0; --blue:#7aa2ff; --violet:#d58cff; --red:#ff5d6c; --green:#7ee08a;
+  --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; --serif:"Instrument Serif",Georgia,serif;
+  --r:14px; --maxw:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{background:var(--bg);color:var(--ink);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:48px 48px;opacity:.18;mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 70%)}
+a{color:var(--cyan);text-decoration:none} a:hover{text-decoration:underline}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+code,.mono{font-family:var(--mono)}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(10,17,20,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:20px;height:60px}
+.brand{font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.brand b{color:var(--amber)}
+.navlinks{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.navlinks::-webkit-scrollbar{display:none}
+.navlinks a{color:var(--ink2);font-size:13.5px;padding:6px 10px;border-radius:8px;white-space:nowrap}
+.navlinks a:hover{color:var(--ink);background:var(--panel);text-decoration:none}
+.navlinks a.cta{color:#0a1114;background:var(--amber);font-weight:600}
+
+/* hero */
+.hero{padding:88px 0 56px;position:relative}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 0 4px rgba(255,93,108,.18);animation:pulse 2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,93,108,0)}}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(42px,6.4vw,82px);line-height:1.02;letter-spacing:-.01em;margin:22px 0 22px;max-width:15ch}
+h1 em{color:var(--cyan)}
+.lede{font-size:clamp(17px,1.6vw,20px);color:var(--ink2);max-width:62ch}
+.lede strong{color:var(--ink);font-weight:500}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:end}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.chip{font-family:var(--mono);font-size:12.5px;padding:6px 11px;border:1px solid var(--line2);border-radius:999px;color:var(--ink2);background:var(--bg2)}
+.chip b{color:var(--ink);font-weight:500}
+.hero-card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 12px}
+.hero-card .lbl{font-family:var(--mono);font-size:11.5px;color:var(--ink3);display:flex;justify-content:space-between}
+.hero-card svg{width:100%;height:auto;display:block;margin-top:6px}
+.btns{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:12px 18px;border-radius:10px;border:1px solid var(--line2);color:var(--ink);background:var(--panel);cursor:pointer;font-family:var(--sans)}
+.btn:hover{text-decoration:none;border-color:var(--ink3)}
+.btn.primary{background:var(--amber);color:#0a1114;border-color:var(--amber)}
+.btn.small{font-size:13px;padding:8px 12px}
+
+/* sections */
+section{padding:72px 0;border-top:1px solid var(--line)}
+.sec-head{display:grid;grid-template-columns:180px 1fr;gap:32px;margin-bottom:36px}
+.sec-num{font-family:var(--mono);font-size:13px;color:var(--amber);padding-top:12px}
+h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,4vw,48px);line-height:1.08}
+h2 + p{color:var(--ink2);margin-top:12px;max-width:68ch}
+h3{font-size:18px;font-weight:600;margin-bottom:8px}
+.prose{max-width:72ch;color:var(--ink2)} .prose p+p{margin-top:14px} .prose strong{color:var(--ink);font-weight:500}
+.indent{margin-left:212px}
+@media(max-width:900px){.sec-head{grid-template-columns:1fr;gap:6px}.indent{margin-left:0}.hero-grid{grid-template-columns:1fr}}
+
+/* team */
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}}
+@media(max-width:600px){.g4,.g2{grid-template-columns:1fr}}
+.card{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.member .av{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-family:var(--mono);font-weight:600;color:#0a1114;margin-bottom:14px}
+.member .nm{font-weight:600}
+.member .rg{font-family:var(--mono);font-size:13px;color:var(--ink3)}
+.member .rl{font-size:13.5px;color:var(--ink2);margin-top:10px;border-top:1px dashed var(--line2);padding-top:10px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-size:14.5px}
+.kv dt{color:var(--ink3);font-family:var(--mono);font-size:12.5px;padding-top:2px}
+.kv dd{color:var(--ink)}
+.co{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.co:last-child{border-bottom:0}
+.co .tag{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:6px;height:fit-content;border:1px solid var(--line2);color:var(--ink3)}
+.co.on .tag{background:rgba(94,230,208,.12);border-color:rgba(94,230,208,.4);color:var(--cyan)}
+.co p{font-size:14.5px;color:var(--ink2)} .co.on p{color:var(--ink)}
+.co .use{font-size:12.5px;color:var(--cyan);font-family:var(--mono);display:block;margin-top:2px}
+
+/* compare */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
+@media(max-width:700px){.vs{grid-template-columns:1fr}}
+.vs .card h3{display:flex;gap:10px;align-items:center}
+.vs .bad h3::before{content:"✕";color:var(--red);font-family:var(--mono)}
+.vs .good h3::before{content:"✓";color:var(--green);font-family:var(--mono)}
+.vs ul{list-style:none;color:var(--ink2);font-size:14.5px} .vs li{padding:6px 0 6px 18px;position:relative}
+.vs li::before{content:"—";position:absolute;left:0;color:var(--ink3)}
+.good{border-color:rgba(126,224,138,.3)}
+
+/* literature */
+.lit{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
+@media(max-width:900px){.lit{grid-template-columns:1fr}}
+.paper{border-left:3px solid var(--blue)}
+.paper .src{font-family:var(--mono);font-size:12.5px;color:var(--ink3);margin-top:14px}
+.gap{background:linear-gradient(160deg,rgba(255,179,71,.1),var(--panel) 60%);border-color:rgba(255,179,71,.35)}
+.gap .k{font-family:var(--mono);font-size:12px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em}
+.steps{counter-reset:s;list-style:none;margin-top:10px} .steps li{counter-increment:s;padding:8px 0 8px 34px;position:relative;font-size:14.5px;color:var(--ink2)}
+.steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:8px;font-family:var(--mono);font-size:12px;color:var(--blue)}
+
+/* flowchart */
+.flow{display:grid;grid-template-columns:1fr 1fr;gap:28px 56px;position:relative}
+@media(max-width:760px){.flow{grid-template-columns:1fr}}
+.fcol{display:flex;flex-direction:column;align-items:stretch}
+.fn{position:relative;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:12px 16px;font-size:14.5px;text-align:center}
+.fn small{display:block;font-family:var(--mono);font-size:12.5px;color:var(--cyan);margin-top:2px}
+.fn .i{position:absolute;left:10px;top:9px;font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.fn.term{border-radius:999px;background:var(--panel2);font-weight:600;max-width:200px;margin:0 auto;width:100%}
+.fn.io{transform:skewX(-10deg);background:rgba(255,179,71,.08);border-color:rgba(255,179,71,.4)} .fn.io>*{transform:skewX(10deg)} .fn.io .inner{display:block}
+.fn.dec{background:rgba(255,93,108,.08);border-color:rgba(255,93,108,.45);clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%);padding:16px 28px}
+.fn.hl{border-color:rgba(94,230,208,.45)}
+.arrow{height:26px;position:relative;margin:0 auto;width:2px;background:var(--line2)}
+.arrow::after{content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--line2);border-bottom:0}
+.arrow .lb{position:absolute;left:10px;top:3px;font-family:var(--mono);font-size:11px;color:var(--green);white-space:nowrap}
+.flow-note{font-family:var(--mono);font-size:12.5px;color:var(--ink3);margin-top:18px;text-align:center}
+
+/* concepts */
+.concepts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:800px){.concepts{grid-template-columns:1fr}}
+.cc{display:flex;flex-direction:column}
+.cc .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.cc .co-t{font-family:var(--mono);font-size:11.5px;color:var(--cyan);border:1px solid rgba(94,230,208,.35);padding:2px 7px;border-radius:6px;white-space:nowrap}
+.cc p{font-size:14.5px;color:var(--ink2)}
+.eq{font-family:var(--serif);font-size:22px;color:var(--ink);background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0 12px;overflow-x:auto;white-space:nowrap;line-height:1.5}
+.eq i{font-style:italic} .eq .m{font-family:var(--mono);font-size:15px;color:var(--ink2)}
+.eq sub,.eq sup{font-size:.62em}
+.mat{display:inline-grid;font-family:var(--mono);font-size:12.5px;border-left:2px solid var(--ink3);border-right:2px solid var(--ink3);border-radius:4px;padding:2px 8px;gap:0 10px;vertical-align:middle;color:var(--ink2)}
+.mat span{text-align:center;min-width:22px} .mat .z{color:var(--ink3);opacity:.45}
+
+/* demo */
+#demo{background:linear-gradient(180deg,rgba(18,30,35,.7),transparent 70%)}
+.demo{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+@media(max-width:980px){.demo{grid-template-columns:1fr}}
+.controls{position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto}
+@media(max-width:980px){.controls{position:static;max-height:none}}
+.ctl-group{padding:14px 0;border-bottom:1px solid var(--line)} .ctl-group:first-child{padding-top:0} .ctl-group:last-child{border:0;padding-bottom:0}
+.ctl-title{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.ctl{margin:10px 0}
+.ctl label{display:flex;justify-content:space-between;font-size:13.5px;color:var(--ink2);margin-bottom:4px}
+.ctl label output{font-family:var(--mono);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--amber);height:20px}
+.chks{display:flex;flex-wrap:wrap;gap:6px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px;border:1px solid var(--line2);border-radius:8px;cursor:pointer;user-select:none;color:var(--ink2)}
+.chk input{display:none} .chk .sw{width:9px;height:9px;border-radius:3px;opacity:.35}
+.chk:has(input:checked){color:var(--ink);border-color:var(--ink3);background:var(--panel2)} .chk:has(input:checked) .sw{opacity:1}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg2);border:1px solid var(--line2);border-radius:9px;padding:3px}
+.seg button{background:none;border:0;color:var(--ink2);font:500 13px var(--sans);padding:7px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--panel2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
+.hint{font-size:12.5px;color:var(--ink3);margin-top:6px;line-height:1.5}
+.out{display:flex;flex-direction:column;gap:16px;min-width:0}
+.status{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:700px){.status{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stat .k{font-family:var(--mono);font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+.stat .v{font-family:var(--mono);font-size:22px;font-weight:500;margin-top:4px}
+.stat .s{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.stat.alert .v{color:var(--red)} .stat.ok .v{color:var(--green)}
+.chart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 14px 8px}
+.chart-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.chart-h h3{font-size:15px;margin:0} .chart-h h3 .f{font-family:var(--mono);font-weight:400;font-size:12.5px;color:var(--cyan);margin-left:8px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--ink2);font-family:var(--mono)}
+.legend span{display:inline-flex;align-items:center;gap:5px} .legend i{width:12px;height:3px;border-radius:2px;display:inline-block}
+.chart canvas{width:100%;height:220px;display:block;cursor:crosshair}
+.chart canvas.tall{height:260px}
+.tip{position:fixed;pointer-events:none;background:rgba(10,17,20,.95);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:12px/1.5 var(--mono);color:var(--ink);z-index:100;display:none;min-width:150px}
+.tip .t{color:var(--amber);margin-bottom:2px}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.results{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);text-align:left;font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line2)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:13px}
+td.n,th.n{text-align:right}
+.bar{height:6px;border-radius:3px;background:var(--line2);overflow:hidden;margin-top:4px} .bar>i{display:block;height:100%}
+.pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:5px;font-family:var(--mono)}
+.pill.up{background:rgba(255,93,108,.15);color:var(--red)} .pill.dn{background:rgba(126,224,138,.14);color:var(--green)}
+.scroll{max-height:280px;overflow:auto}
+.verdict{font-size:14px;color:var(--ink2);line-height:1.6;border-left:3px solid var(--amber);padding:2px 0 2px 14px;margin-top:4px}
+.verdict b{color:var(--ink);font-weight:500}
+.empty{color:var(--ink3);font-size:13.5px;padding:14px 4px}
+
+/* code */
+pre{background:#071012;border:1px solid var(--line);border-radius:12px;padding:18px;overflow:auto;font:13px/1.6 var(--mono);color:#cfe0e3;max-height:520px}
+pre .c{color:#6f878e} pre .k{color:var(--violet)} pre .s{color:var(--green)} pre .f{color:var(--blue)} pre .n{color:var(--amber)}
+.code-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}
+.code-h .fn{all:unset;font-family:var(--mono);font-size:13px;color:var(--ink2)}
+
+/* limits */
+.lim .card{border-top:3px solid var(--red)}
+.lim .card:nth-child(2){border-top-color:var(--amber)} .lim .card:nth-child(3){border-top-color:var(--blue)}
+.lim p{font-size:14.5px;color:var(--ink2)}
+
+/* gantt */
+.gantt{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;overflow-x:auto}
+.g-inner{min-width:760px}
+.g-row{display:grid;grid-template-columns:34px 1fr 1.25fr;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.g-row:last-child{border:0}
+.g-row .no{font-family:var(--mono);font-size:12px;color:var(--ink3)}
+.g-row .tk{font-size:14px} .g-row .tk small{display:block;color:var(--ink3);font-size:12px;font-family:var(--mono)}
+.g-track{position:relative;height:22px;background:repeating-linear-gradient(90deg,transparent 0 calc(100%/9 - 1px),var(--line) calc(100%/9 - 1px) calc(100%/9))}
+.g-bar{position:absolute;top:3px;height:16px;border-radius:5px;font-family:var(--mono);font-size:10.5px;color:#0a1114;display:flex;align-items:center;padding:0 6px;white-space:nowrap;overflow:hidden;font-weight:600}
+.g-scale{display:grid;grid-template-columns:34px 1fr 1.25fr;gap:12px;font-family:var(--mono);font-size:11px;color:var(--ink3);padding-bottom:8px;border-bottom:1px solid var(--line2)}
+.g-scale .ticks{display:flex;justify-content:space-between}
+#opsView>div{min-width:0}
+.g-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:13px;color:var(--ink2)}
+.g-legend span{display:inline-flex;gap:6px;align-items:center} .g-legend i{width:12px;height:12px;border-radius:3px}
+
+footer{border-top:1px solid var(--line);padding:40px 0 60px;color:var(--ink3);font-size:13.5px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.ref{font-size:14px;color:var(--ink2);border-left:3px solid var(--line2);padding-left:14px}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease} .reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">Δ<b>T</b>/Δt · Team 7</div>
+    <div class="navlinks">
+      <a href="#about">Project</a>
+      <a href="#rationale">Rationale</a>
+      <a href="#literature">Literature</a>
+      <a href="#method">Method</a>
+      <a href="#concepts">Concepts</a>
+      <a href="#limits">Limits</a>
+      <a href="#plan">Plan</a>
+      <a href="#demo" class="cta">Live demo</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Micro-Project · 25DC201 · 2025–26</div>
+      <h1>Analysing changes in network traffic using <em>rates of change</em></h1>
+      <p class="lede">Threshold alarms ask <strong>how much</strong> traffic is present. This project asks <strong>how quickly it is changing</strong>. Each protocol is modelled as a function of time, and derivatives, integrals and eigen-analysis are written as matrices to catch a surge while it is still building.</p>
+      <div class="btns">
+        <a class="btn primary" href="#demo">Run the detector ↓</a>
+        <a class="btn" href="#method">See the method</a>
+      </div>
+      <div class="hero-meta">
+        <span class="chip">Course <b>25DC201</b></span>
+        <span class="chip">COs <b>1 · 2 · 3 · 4</b></span>
+        <span class="chip">Karunya · <b>DS &amp; Cybersecurity</b></span>
+      </div>
+    </div>
+    <div class="hero-card" aria-hidden="true">
+      <div class="lbl"><span>f(t) traffic</span><span style="color:var(--amber)">f′(t) rate of change</span></div>
+      <svg viewBox="0 0 400 230" id="heroSvg"></svg>
+      <div class="lbl"><span>f′ spikes at the onset, long before f crosses a threshold</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">01 / Team &amp; course</div>
+      <div><h2>Who built this, and for which course</h2>
+      <p>A first-year micro-project for the School of Computer Science and Technology, Division of Data Science and Cybersecurity, Karunya Institute of Technology and Sciences.</p></div>
+    </div>
+    <div class="grid g4 reveal" id="team"></div>
+    <div class="grid g2 reveal" style="margin-top:16px">
+      <div class="card">
+        <h3>Course details</h3>
+        <dl class="kv" style="margin-top:12px">
+          <dt>Title</dt><dd>Linear Algebra and Calculus for Data Science and Cybersecurity Engineers</dd>
+          <dt>Code</dt><dd>25DC201</dd>
+          <dt>Faculty</dt><dd>Dr. H Jude Immaculate</dd>
+          <dt>Year</dt><dd>2025–26 · Semester I</dd>
+          <dt>Batch</dt><dd>Year I · Batches 1, 2</dd>
+        </dl>
+        <p style="margin-top:16px;font-size:14px;color:var(--ink2)"><span class="mono" style="color:var(--amber);font-size:12px">MACRO COMPETENCY</span><br>Use the principles of Linear Algebra and Calculus to solve problems in Data Science and Cybersecurity.</p>
+      </div>
+      <div class="card">
+        <h3>Course outcomes addressed</h3>
+        <div id="cos" style="margin-top:4px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RATIONALE -->
+<section id="rationale">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">02 / Rationale</div>
+      <div><h2>A fixed threshold is always late</h2></div>
+    </div>
+    <div class="indent reveal">
+      <div class="prose">
+        <p>Every organisation depends on a network whose behaviour changes constantly, and the traffic crossing it is the main evidence a security team has. Most monitoring tools raise an alarm only when volume crosses a fixed threshold. That rule is <strong>late</strong>, because it waits until an attack is already large, and <strong>unreliable</strong>, because a threshold high enough to ignore normal busy periods will also miss a slow, deliberate escalation.</p>
+        <p>This is exactly the idea of a derivative. The <strong>first derivative</strong> finds the onset and recovery of an event and marks its peak where it crosses zero. The <strong>second derivative</strong> shows where growth begins to accelerate. The <strong>definite integral</strong> recovers the total data transferred. Arranging the traffic as a matrix lets each of these operations be applied to every channel in a single multiplication, and eigen-analysis of the covariance matrix shows which protocols surged together.</p>
+      </div>
+      <div class="vs">
+        <div class="card bad"><h3>Static volume threshold</h3>
+          <ul><li>Fires only after the flood is already large</li><li>One number has to cover both quiet and busy hours</li><li>Misses slow, deliberate escalation</li><li>Says nothing about which protocols moved together</li></ul></div>
+        <div class="card good"><h3>Rate-of-change detector</h3>
+          <ul><li>Reacts while the surge is still developing</li><li>The sign of f′ separates onset (+) from recovery (−)</li><li>A robust median/MAD baseline resists masking</li><li>The covariance eigenvector shows the surge's make-up</li></ul></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LITERATURE -->
+<section id="literature">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">03 / Literature</div>
+      <div><h2>Building on a multi-level SDN framework</h2></div>
+    </div>
+    <div class="lit reveal">
+      <div class="card paper">
+        <h3>Queiroz et al., <i>Computer Networks</i> (2026)</h3>
+        <p style="color:var(--ink2);font-size:14.5px">The framework turns Software-Defined Network controller telemetry into time-consistent indicators. It aligns port, flow, link and switch analyses to one shared time window, so the different levels describe the same network state.</p>
+        <ol class="steps">
+          <li>OpenFlow exposes <b>cumulative counters</b>. A rate is the difference between consecutive readings divided by the <i>actual</i> elapsed time, and negative differences from counter resets are discarded.</li>
+          <li>Port rates are aggregated into switch, link and path objects with MapReduce-style group-by and joins inside a Lambda Architecture.</li>
+          <li>Two baselines, one averaged over ports and one over switches, express deviation as a <b>z-score</b>, because averaging at a high level can hide a local deviation.</li>
+          <li>Validated on a six-switch Mininet topology with Iperf3 flows. One port's z-score <i>fell</i> while its traffic continued, because concurrent flows raised the global mean.</li>
+        </ol>
+        <div class="src">doi:10.1016/j.comnet.2026.112701 · vol. 289, art. 112701</div>
+      </div>
+      <div class="card gap">
+        <div class="k">The gap this project fills</div>
+        <h3 style="margin-top:10px;font-size:20px">Traffic isn't Gaussian. The authors said so.</h3>
+        <p style="color:var(--ink2);font-size:14.5px;margin-top:6px">The authors describe network traffic as bursty, heavy-tailed and temporally dependent, so a three-sigma reading can't be trusted. They name <b style="color:var(--ink)">median and median-absolute-deviation</b> baselines as the robust alternative, but did not evaluate them.</p>
+        <p style="color:var(--ink2);font-size:14.5px;margin-top:12px">This project takes up that gap in two ways:</p>
+        <div class="eq" style="font-size:18px;margin-top:10px">mean, σ &nbsp;→&nbsp; median, MAD<br>level <i>f</i>(t) &nbsp;→&nbsp; rate <i>f</i>′(t)</div>
+        <p style="color:var(--ink3);font-size:13px">The same masking effect they observed appears in the <a href="#demo">live demo</a> when you switch the baseline to mean/σ.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METHOD -->
+<section id="method">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">04 / Methodology</div>
+      <div><h2>From packet capture to anomaly report</h2>
+      <p>Each stage below is a matrix operation on the traffic matrix <span class="mono">T</span>. The live demo runs this same pipeline.</p></div>
+    </div>
+    <div class="flow reveal" id="flow"></div>
+    <p class="flow-note">Step 09 continues at step 10, the top of the right column. If |z| ≤ threshold, the instant is not flagged and processing goes straight to result analysis.</p>
+  </div>
+</section>
+
+<!-- CONCEPTS -->
+<section id="concepts">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">05 / Concept behind the code</div>
+      <div><h2>Calculus, written as matrices</h2>
+      <p>Because the samples are equally spaced, every calculus operation becomes a sparse, banded matrix, and one multiplication applies it to every protocol channel at once.</p></div>
+    </div>
+    <div class="concepts" id="conceptGrid"></div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section id="demo">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">06 / Live demo</div>
+      <div><h2>Run the detector in your browser</h2>
+      <p>A synthetic 300-second capture across four protocol channels with measurement noise, plus a scheduled attack burst and a smaller surge. Every result comes from real matrix multiplication in JavaScript. Move a slider and the whole pipeline runs again.</p></div>
+    </div>
+
+    <div class="demo">
+      <aside class="card controls" aria-label="Demo controls">
+        <div class="ctl-group">
+          <div class="ctl-title">Attack burst (reference event)</div>
+          <div class="ctl"><label>Channels involved</label><div class="chks" id="chanChks"></div></div>
+          <div class="ctl"><label for="bStart">Start time <output id="bStartO"></output></label><input type="range" id="bStart" min="40" max="240" step="1" value="170"></div>
+          <div class="ctl"><label for="bDur">Duration <output id="bDurO"></output></label><input type="range" id="bDur" min="10" max="90" step="1" value="50"></div>
+          <div class="ctl"><label for="bMag">Magnitude <output id="bMagO"></output></label><input type="range" id="bMag" min="0" max="8" step="0.1" value="4"></div>
+          <div class="ctl"><label for="bRamp">Ramp time <output id="bRampO"></output></label><input type="range" id="bRamp" min="1" max="30" step="1" value="5"></div>
+        </div>
+        <div class="ctl-group">
+          <div class="ctl-title">Secondary surge</div>
+          <div class="ctl"><label for="sMag">Magnitude <output id="sMagO"></output></label><input type="range" id="sMag" min="0" max="3" step="0.05" value="1"></div>
+          <p class="hint">A smaller surge at t = 70 s on the same channels. Switch to the mean/σ baseline and watch the big burst mask it.</p>
+        </div>
+        <div class="ctl-group">
+          <div class="ctl-title">Processing</div>
+          <div class="ctl"><label for="win">Smoothing window (S) <output id="winO"></output></label><input type="range" id="win" min="1" max="15" step="2" value="5"></div>
+          <div class="ctl"><label for="noise">Measurement noise <output id="noiseO"></output></label><input type="range" id="noise" min="0" max="0.3" step="0.01" value="0.08"></div>
+          <div class="ctl"><label for="thr">Threshold |z| &gt; <output id="thrO"></output></label><input type="range" id="thr" min="2" max="8" step="0.1" value="3.5"></div>
+          <div class="ctl"><label>Baseline</label>
+            <div class="seg" id="baseSeg"><button data-v="mad" class="on">median / MAD</button><button data-v="std">mean / σ</button></div></div>
+        </div>
+        <div class="ctl-group" style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn small" id="reseed">↻ New noise seed</button>
+          <button class="btn small" id="reset">Reset</button>
+        </div>
+      </aside>
+
+      <div class="out">
+        <div class="status" id="status"></div>
+        <div class="verdict" id="verdict"></div>
+
+        <div class="chart"><div class="chart-h"><h3>Traffic matrix rows <span class="f">T (raw) · Tₛ = T Sᵀ (smoothed)</span></h3><div class="legend" id="lg0"></div></div><canvas id="c0" class="tall"></canvas></div>
+        <div class="chart"><div class="chart-h"><h3>First rate of change <span class="f">V = Tₛ Dᵀ</span></h3><div class="legend" id="lg1"></div></div><canvas id="c1"></canvas></div>
+        <div class="chart"><div class="chart-h"><h3>Robust score <span class="f" id="zf">z = (v − med) / (1.4826·MAD)</span></h3><div class="legend" id="lg2"></div></div><canvas id="c2"></canvas></div>
+        <div class="chart"><div class="chart-h"><h3>Second rate of change <span class="f">A″ = Tₛ Sᵀ Aᵀ</span></h3><div class="legend" id="lg3"></div></div><canvas id="c3"></canvas></div>
+        <div class="chart"><div class="chart-h"><h3>Accumulated volume <span class="f">cumulative trapezoid of raw T</span></h3><div class="legend" id="lg4"></div></div><canvas id="c4"></canvas></div>
+
+        <div class="results">
+          <div class="card">
+            <h3>Total volume per channel <span class="mono" style="display:block;font-size:12px;color:var(--cyan);font-weight:400">Q = T w</span></h3>
+            <table id="volT" style="margin-top:8px"></table>
+          </div>
+          <div class="card">
+            <h3>Eigen-analysis of covariance <span class="mono" style="display:block;font-size:12px;color:var(--cyan);font-weight:400">C = V̄ V̄ᵀ/(n−1)</span></h3>
+            <div id="eigOut" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="chart-h"><h3>Anomaly report: flagged instants</h3><span class="mono" style="font-size:12px;color:var(--ink3)" id="flagCount"></span></div>
+          <div class="scroll"><table id="flagT"></table></div>
+        </div>
+        <div class="card">
+          <div class="chart-h"><h3>Operator matrices (first 8 × 8, Δt = 1 s)</h3><span class="mono" style="font-size:12px;color:var(--ink3)">banded and mostly zero, so stored as sparse when n is large</span></div>
+          <div class="grid g3" id="opsView" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PYTHON -->
+<section id="code">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">07 / Reference implementation</div>
+      <div><h2>The same pipeline in Python</h2>
+      <p>A compact NumPy version of the method for running on a real capture. Export per-interval byte counts per protocol (for example from Wireshark's <i>Statistics → I/O Graphs</i>) into the matrix <span class="mono">T</span>.</p></div>
+    </div>
+    <div class="reveal">
+      <div class="code-h"><span class="fn">traffic_rates.py</span><button class="btn small" id="copyPy">Copy code</button></div>
+      <pre id="py"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- LIMITS -->
+<section id="limits">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">08 / Limitations</div>
+      <div><h2>What a derivative can't tell you</h2></div>
+    </div>
+    <div class="grid g3 lim reveal">
+      <div class="card"><h3>An onset detector, not a classifier</h3><p>It fires when traffic starts rising and again when it stops. In the steady middle of a sustained flood, traffic is roughly constant and f′ ≈ 0. You can see this between the two spikes in the demo.</p></div>
+      <div class="card"><h3>Malicious or legitimate?</h3><p>A flood and a large legitimate file transfer are both genuine rapid increases. Pair the detector with a level-based rule and a look at source addresses before raising an incident.</p></div>
+      <div class="card"><h3>Scale</h3><p>A real capture at one-second samples has thousands of columns. A dense n × n operator would take hundreds of MB. Because S, D and A are banded, sparse storage cuts memory and time by orders of magnitude without changing any result.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PLAN -->
+<section id="plan">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">09 / Action plan</div>
+      <div><h2>Timeline, August to October 2026</h2></div>
+    </div>
+    <div class="gantt reveal"><div class="g-inner" id="gantt"></div></div>
+    <div class="g-legend" id="gLegend"></div>
+
+    <div class="grid g2" style="margin-top:28px">
+      <div class="card reveal">
+        <h3>Resources</h3>
+        <table style="margin-top:8px">
+          <tr><th>Resource</th><th>Specification</th><th class="n">Qty</th><th class="n">Cost</th></tr>
+          <tr><td style="font-family:var(--sans)">Laptop</td><td style="font-family:var(--sans);color:var(--ink2)">i9 processor, 32 GB RAM</td><td class="n">1</td><td class="n">—</td></tr>
+          <tr><td style="font-family:var(--sans)">Python</td><td style="font-family:var(--sans);color:var(--ink2)">Open-source IDE</td><td class="n">1</td><td class="n">Free</td></tr>
+          <tr><td style="font-family:var(--sans)">Internet</td><td style="font-family:var(--sans);color:var(--ink2)">For downloading data</td><td class="n">1</td><td class="n">—</td></tr>
+        </table>
+      </div>
+      <div class="card reveal">
+        <h3>Reference</h3>
+        <p class="ref" style="margin-top:12px">[1] W. Queiroz, J. E. Santarem Segundo, M. A. R. Dantas and M. A. M. Capretz, “A multi-level traffic analysis framework for software-defined networks using hierarchical aggregation and topological mapping,” <i>Computer Networks</i>, vol. 289, art. no. 112701, Oct. 2026. doi: <a href="https://doi.org/10.1016/j.comnet.2026.112701">10.1016/j.comnet.2026.112701</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>Team 7 · Kris Jefford I · Dennish Robin · SivaPrakash R A · Yuvanesh V</div>
+    <div class="mono">OBCFC Micro-Project 2025–26 · Karunya Institute of Technology and Sciences</div>
+  </div>
+</footer>
+
+<div class="tip" id="tip"></div>
+
+<!-- ============ MATHS (pure, testable) ============ -->
+<script id="mathjs">
+const LA = (() => {
+  const zeros = (r, c) => Array.from({length: r}, () => new Float64Array(c));
+  const T_ = M => { const r = M.length, c = M[0].length, R = zeros(c, r);
+    for (let i = 0; i < r; i++) for (let j = 0; j < c; j++) R[j][i] = M[i][j]; return R; };
+  // dense matmul that skips zeros of the left operand (operators are banded)
+  function mul(A, B) {
+    const n = A.length, k = B.length, m = B[0].length, C = zeros(n, m);
+    for (let i = 0; i < n; i++) { const Ai = A[i], Ci = C[i];
+      for (let p = 0; p < k; p++) { const a = Ai[p]; if (a === 0) continue; const Bp = B[p];
+        for (let j = 0; j < m; j++) Ci[j] += a * Bp[j]; } }
+    return C;
+  }
+  const mulVec = (A, v) => A.map(row => row.reduce((s, x, j) => s + x * v[j], 0));
+
+  // Smoothing S: centred moving average, rows normalised to sum to 1 (truncated at the edges)
+  function smoothing(n, k) {
+    const S = zeros(n, n), h = (k - 1) >> 1;
+    for (let i = 0; i < n; i++) { const lo = Math.max(0, i - h), hi = Math.min(n - 1, i + h), w = 1 / (hi - lo + 1);
+      for (let j = lo; j <= hi; j++) S[i][j] = w; }
+    return S;
+  }
+  // First difference D: central inside, forward / backward at the ends
+  function diff1(n, dt) {
+    const D = zeros(n, n);
+    D[0][0] = -1 / dt; D[0][1] = 1 / dt;
+    for (let i = 1; i < n - 1; i++) { D[i][i - 1] = -1 / (2 * dt); D[i][i + 1] = 1 / (2 * dt); }
+    D[n - 1][n - 2] = -1 / dt; D[n - 1][n - 1] = 1 / dt;
+    return D;
+  }
+  // Second difference A: three-point stencil, shifted stencil at the ends
+  function diff2(n, dt) {
+    const A = zeros(n, n), c = 1 / (dt * dt);
+    const put = (i, j) => { A[i][j] = c; A[i][j + 1] = -2 * c; A[i][j + 2] = c; };
+    put(0, 0); for (let i = 1; i < n - 1; i++) put(i, i - 1); put(n - 1, n - 3);
+    return A;
+  }
+  // Trapezoidal weights w
+  function trapz(n, dt) { const w = new Float64Array(n).fill(dt); w[0] = w[n - 1] = dt / 2; return w; }
+  function cumtrapz(row, dt) { const o = new Float64Array(row.length);
+    for (let i = 1; i < row.length; i++) o[i] = o[i - 1] + dt * (row[i - 1] + row[i]) / 2; return o; }
+
+  // Covariance of rows (channels × time)
+  function covariance(V) {
+    const m = V.length, n = V[0].length, C = zeros(m, m);
+    const mu = V.map(r => r.reduce((a, b) => a + b, 0) / n);
+    for (let a = 0; a < m; a++) for (let b = a; b < m; b++) { let s = 0;
+      for (let t = 0; t < n; t++) s += (V[a][t] - mu[a]) * (V[b][t] - mu[b]);
+      C[a][b] = C[b][a] = s / (n - 1); }
+    return C;
+  }
+  // Cyclic Jacobi eigen-decomposition for real symmetric matrices
+  function eigSym(Cin) {
+    const n = Cin.length, A = Cin.map(r => Float64Array.from(r)), V = zeros(n, n);
+    for (let i = 0; i < n; i++) V[i][i] = 1;
+    for (let sweep = 0; sweep < 100; sweep++) {
+      let off = 0; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) off += A[i][j] ** 2;
+      if (off < 1e-22) break;
+      for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) {
+        if (Math.abs(A[p][q]) < 1e-300) continue;
+        const th = (A[q][q] - A[p][p]) / (2 * A[p][q]);
+        const t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1));
+        const c = 1 / Math.sqrt(t * t + 1), s = t * c;
+        for (let k = 0; k < n; k++) { const akp = A[k][p], akq = A[k][q]; A[k][p] = c * akp - s * akq; A[k][q] = s * akp + c * akq; }
+        for (let k = 0; k < n; k++) { const apk = A[p][k], aqk = A[q][k]; A[p][k] = c * apk - s * aqk; A[q][k] = s * apk + c * aqk; }
+        for (let k = 0; k < n; k++) { const vkp = V[k][p], vkq = V[k][q]; V[k][p] = c * vkp - s * vkq; V[k][q] = s * vkp + c * vkq; }
+      }
+    }
+    const pairs = Array.from({length: n}, (_, i) => {
+      let vec = V.map(r => r[i]);
+      const big = vec.reduce((b, x) => Math.abs(x) > Math.abs(b) ? x : b, 0);
+      if (big < 0) vec = vec.map(x => -x);
+      return {val: A[i][i], vec};
+    });
+    return pairs.sort((a, b) => b.val - a.val);
+  }
+  const median = arr => { const s = Float64Array.from(arr).sort(), n = s.length;
+    return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+  function robustZ(v) { const med = median(v), mad = median(Array.from(v, x => Math.abs(x - med)));
+    const sc = 1.4826 * mad || 1e-12; return Float64Array.from(v, x => (x - med) / sc); }
+  function stdZ(v) { const n = v.length, mu = v.reduce((a, b) => a + b, 0) / n;
+    const sd = Math.sqrt(v.reduce((a, b) => a + (b - mu) ** 2, 0) / (n - 1)) || 1e-12;
+    return Float64Array.from(v, x => (x - mu) / sd); }
+
+  // Seeded RNG + Gaussian
+  function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function gauss(r) { let u = 0, v = 0; while (u === 0) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+  const CHANNELS = [
+    {name: "HTTP",  base: 420, color: "#5ee6d0"},
+    {name: "HTTPS", base: 900, color: "#7aa2ff"},
+    {name: "DNS",   base: 60,  color: "#ffb347"},
+    {name: "SSH",   base: 35,  color: "#d58cff"},
+  ];
+  // trapezoidal pulse 0→1→0
+  function pulse(t, start, dur, ramp) {
+    if (t < start || t > start + dur + ramp) return 0;
+    if (t < start + ramp) return (t - start) / ramp;
+    if (t <= start + dur) return 1;
+    return 1 - (t - start - dur) / ramp;
+  }
+  // Synthetic capture: m × n matrix in KB per second
+  function synth(p) {
+    const n = p.n, dt = p.dt, r = rng(p.seed), T = zeros(CHANNELS.length, n);
+    CHANNELS.forEach((ch, i) => {
+      const ph = r() * 6.28, ph2 = r() * 6.28;
+      for (let k = 0; k < n; k++) { const t = k * dt;
+        let x = ch.base * (1 + 0.12 * Math.sin(2 * Math.PI * t / 240 + ph) + 0.05 * Math.sin(2 * Math.PI * t / 37 + ph2));
+        if (p.channels.includes(i)) {
+          x += ch.base * p.mag * pulse(t, p.start, p.dur, p.ramp);
+          x += ch.base * p.sMag * pulse(t, 70, 22, 4);
+        }
+        x *= 1 + p.noise * gauss(r);
+        T[i][k] = Math.max(0, x);
+      } });
+    return T;
+  }
+
+  // Whole pipeline
+  function analyse(T, p) {
+    const m = T.length, n = T[0].length, dt = p.dt;
+    const S = smoothing(n, p.win), D = diff1(n, dt), A = diff2(n, dt), w = trapz(n, dt);
+    const St = T_(S), Dt = T_(D), At = T_(A);
+    const Ts = mul(T, St);                 // Tₛ = T Sᵀ
+    const V = mul(Ts, Dt);                 // V  = Tₛ Dᵀ
+    const A2 = mul(mul(Ts, St), At);       // A″ = Tₛ Sᵀ Aᵀ
+    const Q = mulVec(T, w);                // Q  = T w
+    const cum = T.map(r => cumtrapz(r, dt));
+    const C = covariance(V), eig = eigSym(C);
+    const Z = V.map(row => p.base === "std" ? stdZ(row) : robustZ(row));
+    const flags = [];
+    for (let k = 0; k < n; k++) for (let i = 0; i < m; i++)
+      if (Math.abs(Z[i][k]) > p.thr) flags.push({k, t: k * dt, ch: i, v: V[i][k], z: Z[i][k]});
+    return {S, D, A, w, Ts, V, A2, Q, cum, C, eig, Z, flags};
+  }
+  return {zeros, T_, mul, mulVec, smoothing, diff1, diff2, trapz, cumtrapz, covariance, eigSym, median, robustZ, stdZ, rng, synth, analyse, pulse, CHANNELS};
+})();
+if (typeof module !== "undefined") module.exports = LA;
+</script>
+
+<!-- ============ UI ============ -->
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const CH = LA.CHANNELS;
+
+/* ---------- static content ---------- */
+const team = [
+  {n: "Kris Jefford I", r: "URK26AI1004", c: "#ffb347", role: "Topic selection, conclusions, report and final submission"},
+  {n: "Dennish Robin", r: "URK26AI1048", c: "#5ee6d0", role: "Information collection and literature review"},
+  {n: "SivaPrakash R A", r: "URK26AI1039", c: "#7aa2ff", role: "Matrix operations and computing the rates of change"},
+  {n: "Yuvanesh V", r: "URK26AI1028", c: "#d58cff", role: "Matrix formulation of traffic and anomaly analysis"},
+];
+$("#team").innerHTML = team.map(m => `<div class="card member"><div class="av" style="background:${m.c}">${m.n.split(" ").map(w => w[0]).slice(0, 2).join("")}</div>
+  <div class="nm">${m.n}</div><div class="rg">${m.r}</div><div class="rl">${m.role}</div></div>`).join("");
+
+const cos = [
+  ["CO1", "Use matrix operations, eigenvalues, and eigenvectors to enhance data efficiency.", "Traffic matrix T · operators · eigen-analysis of C"],
+  ["CO2", "Use matrix decomposition for data analysis and dimensionality reduction.", "Spectral decomposition of C: dominant direction"],
+  ["CO3", "Determine the critical points and optimize functions using derivatives.", "f′ = 0 at the peak · f″ at the inflection points"],
+  ["CO4", "Solve computer graphics problems using integral calculus.", "Trapezoidal integral → total volume Q"],
+  ["CO5", "Solve problems in Data Science and Cybersecurity using differential equations.", null],
+];
+$("#cos").innerHTML = cos.map(([t, d, u]) => `<div class="co ${u ? "on" : ""}"><span class="tag">${t}</span><p>${d}${u ? `<span class="use">→ ${u}</span>` : ""}</p></div>`).join("");
+
+/* flowchart */
+const FL = [
+  ["term", "Start"],
+  ["io", "Read network traffic log", "packet / flow capture"],
+  ["", "Aggregate into n samples", "width Δt seconds"],
+  ["hl", "Build traffic matrix T (m × n)", "row = channel, column = instant"],
+  ["hl", "Construct operators", "S, D, A and weight vector w"],
+  ["", "Smooth the data", "Tₛ = T Sᵀ"],
+  ["", "First rate of change", "V = Tₛ Dᵀ"],
+  ["", "Second rate of change", "A″ = Tₛ Sᵀ Aᵀ"],
+  ["", "Accumulated volume", "Q = T w"],
+];
+const FR = [
+  ["hl", "Covariance matrix C", "and eigen-decomposition"],
+  ["", "Robust z-score of V", "z = (v − median) / (1.4826 × MAD)"],
+  ["dec", "| z | > threshold ?"],
+  ["", "Flag anomalous instant", "record t, dT/dt and direction"],
+  ["", "Result analysis", "comparison with reference event"],
+  ["io", "Output graphs and anomaly report"],
+  ["term", "Stop"],
+];
+let step = 0;
+const node = ([k, t, s]) => { if (k !== "term") step++; const inner = `${k === "term" || k === "dec" ? "" : `<span class="i">${String(step).padStart(2, "0")}</span>`}${t}${s ? `<small>${s}</small>` : ""}`;
+  return `<div class="fn ${k}">${k === "io" ? `<span class="inner">${inner}</span>` : inner}</div>`; };
+const col = (arr, labels = {}) => `<div class="fcol">${arr.map((n, i) => node(n) + (i < arr.length - 1 ? `<div class="arrow">${labels[i] ? `<span class="lb">${labels[i]}</span>` : ""}</div>` : "")).join("")}</div>`;
+const leftHtml = col(FL); const rightHtml = col(FR, {2: "yes"});
+$("#flow").innerHTML = leftHtml + rightHtml;
+
+/* concept cards */
+const mat = (rows, cls = "") => `<span class="mat" style="grid-template-columns:repeat(${rows[0].length},auto)">${rows.flat().map(x => `<span class="${x === "0" || x === "·" ? "z" : ""}">${x}</span>`).join("")}</span>`;
+const concepts = [
+  {t: "Traffic as a matrix", co: "CO1", p: "The capture is cut into equal Δt intervals and bytes are counted per protocol. Each row of T is a sampled function f(t), so one matrix operation acts on every channel at once, with no loop over protocols.",
+    eq: `T = ${mat([["f₁(t₁)", "…", "f₁(tₙ)"], ["⋮", "", "⋮"], ["fₘ(t₁)", "…", "fₘ(tₙ)"]])} <span class="m">&nbsp;m × n</span>`},
+  {t: "Smoothing before differentiating", co: "CO1", p: "Differencing amplifies small, fast jitter. S is a banded averaging matrix whose rows each sum to 1, so it removes noise without creating or destroying any traffic.",
+    eq: `<i>T</i><sub>s</sub> = <i>T S</i><sup>T</sup> &nbsp;&nbsp; <span class="m">Σⱼ Sᵢⱼ = 1</span> &nbsp; ${mat([["⅓", "⅓", "⅓", "0"], ["0", "⅓", "⅓", "⅓"]])}`},
+  {t: "Differentiation as a matrix", co: "CO3", p: "Inside the range, central differences are used. The first and last samples have only one neighbour, so they use forward and backward differences. D has non-zero entries only on the two diagonals next to the main one.",
+    eq: `<i>f</i>′(t<sub>i</sub>) ≈ <span style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.8em"><span style="border-bottom:1px solid var(--ink3)">f(t<sub>i+1</sub>) − f(t<sub>i−1</sub>)</span><span>2Δt</span></span> &nbsp; <i>V</i> = <i>T</i><sub>s</sub><i>D</i><sup>T</sup>`},
+  {t: "Second rate of change", co: "CO3", p: "The three-point stencil gives A. Since it divides by Δt², it amplifies any remaining noise far more than D does, so the smoothing is applied a second time before A.",
+    eq: `<i>f</i>″(t<sub>i</sub>) ≈ <span style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.8em"><span style="border-bottom:1px solid var(--ink3)">f<sub>i+1</sub> − 2f<sub>i</sub> + f<sub>i−1</sub></span><span>Δt²</span></span> &nbsp; <i>A</i>″ = <i>T</i><sub>s</sub><i>S</i><sup>T</sup><i>A</i><sup>T</sup>`},
+  {t: "Integral gives total volume", co: "CO4", p: "By the Fundamental Theorem of Calculus, integrating the rate over the window returns the total data transferred. The trapezoidal rule is a weight vector w, and it is applied to the raw matrix, so the true volume never depends on the display filter.",
+    eq: `<i>Q</i> = <i>T w</i>, &nbsp; <i>w</i> = Δt·[½, 1, 1, …, 1, ½]<sup>T</sup>`},
+  {t: "Which protocols surged together", co: "CO1 · CO2", p: "C is real and symmetric, so by the spectral theorem it has real eigenvalues and orthogonal eigenvectors. The top eigenvector gives the make-up of the surge, and λ₁ / Σλ is the share of total variation it explains.",
+    eq: `<i>C</i> = <span style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.8em"><span style="border-bottom:1px solid var(--ink3)">V̄ V̄<sup>T</sup></span><span>n − 1</span></span>, &nbsp; <i>C</i><b>u</b> = λ<b>u</b>`},
+  {t: "A decision rule that resists masking", co: "Robust stats", p: "Mean and σ are both inflated by the burst being searched for, so a big attack raises its own threshold. This is called masking. The median and MAD are not moved by a minority of extreme values, and the constant 1.4826 makes MAD equal σ for normally distributed data.",
+    eq: `<i>z</i> = <span style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.8em"><span style="border-bottom:1px solid var(--ink3)">v − median(v)</span><span>1.4826 · MAD(v)</span></span>`},
+  {t: "Reading the sign", co: "CO3", p: "Positive f′ means traffic is growing (onset), and negative f′ means it is falling (recovery). The zero crossing between them is the peak, which needs no search for a maximum. Peaks in |f″| mark where a surge begins to accelerate and later where it levels off.",
+    eq: `<i>f</i>′ &gt; 0 <span class="m">onset</span> · <i>f</i>′ = 0 <span class="m">peak</span> · <i>f</i>′ &lt; 0 <span class="m">recovery</span>`},
+];
+$("#conceptGrid").innerHTML = concepts.map(c => `<div class="card cc reveal"><div class="top"><h3>${c.t}</h3><span class="co-t">${c.co}</span></div><div class="eq">${c.eq}</div><p>${c.p}</p></div>`).join("");
+
+/* gantt */
+const tasks = [
+  ["Selection and finalisation of the micro-project topic", "2026-08-05", "2026-08-10", 0],
+  ["Collection of information from journals, books and websites", "2026-08-11", "2026-08-16", 1],
+  ["Study of matrix operations and the concept of rate of change", "2026-08-17", "2026-08-22", 2],
+  ["Literature review of existing network traffic analysis methods", "2026-08-23", "2026-08-28", 1],
+  ["Formulating the methodology; representing traffic as a matrix", "2026-08-29", "2026-09-03", 3],
+  ["Applying derivatives to compute the rates of change of traffic", "2026-09-04", "2026-09-09", 2],
+  ["Analysing results to detect traffic surges and anomalies", "2026-09-10", "2026-09-15", 3],
+  ["Drawing conclusions from the analysis", "2026-09-16", "2026-09-21", 0],
+  ["Compiling and formatting the project report", "2026-09-22", "2026-09-28", 0],
+  ["Final review and submission of the micro-project", "2026-09-29", "2026-10-05", 0],
+];
+const d0 = new Date("2026-08-05"), d1 = new Date("2026-10-06"), span = d1 - d0;
+const fmt = d => d.toLocaleDateString("en-GB", {day: "2-digit", month: "short"});
+const ticks = []; for (let i = 0; i <= 9; i++) ticks.push(fmt(new Date(+d0 + span * i / 9)));
+$("#gantt").innerHTML = `<div class="g-scale"><span>#</span><span>Activity</span><div class="ticks">${ticks.map(t => `<span>${t}</span>`).join("")}</div></div>` +
+  tasks.map(([a, s, e, who], i) => { const S = new Date(s), E = new Date(+new Date(e) + 864e5);
+    const l = (S - d0) / span * 100, w = (E - S) / span * 100;
+    return `<div class="g-row"><span class="no">${String(i + 1).padStart(2, "0")}</span><div class="tk">${a}<small>${team[who].n} · ${fmt(S)} → ${fmt(new Date(e))}</small></div>
+      <div class="g-track"><div class="g-bar" style="left:${l}%;width:${w}%;background:${team[who].c}" title="${a}">${Math.round((E - S) / 864e5)}d</div></div></div>`; }).join("");
+$("#gLegend").innerHTML = team.map(m => `<span><i style="background:${m.c}"></i>${m.n}</span>`).join("");
+
+/* python code */
+const py = `<span class="c"># traffic_rates.py: rate-of-change anomaly detection (Team 7, 25DC201)</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">from</span> scipy <span class="k">import</span> sparse
+
+<span class="k">def</span> <span class="f">operators</span>(n, dt, k=<span class="n">5</span>):
+    h = k // <span class="n">2</span>
+    <span class="c"># S: banded moving average, every row sums to 1</span>
+    S = sparse.lil_matrix((n, n))
+    <span class="k">for</span> i <span class="k">in</span> range(n):
+        lo, hi = max(<span class="n">0</span>, i - h), min(n - <span class="n">1</span>, i + h)
+        S[i, lo:hi + <span class="n">1</span>] = <span class="n">1</span> / (hi - lo + <span class="n">1</span>)
+    <span class="c"># D: central differences inside, one-sided at the ends</span>
+    D = sparse.diags([-<span class="n">1</span>, <span class="n">1</span>], [-<span class="n">1</span>, <span class="n">1</span>], shape=(n, n), dtype=float).tolil() / (<span class="n">2</span> * dt)
+    D[<span class="n">0</span>, :<span class="n">2</span>] = [-<span class="n">1</span> / dt, <span class="n">1</span> / dt];  D[-<span class="n">1</span>, -<span class="n">2</span>:] = [-<span class="n">1</span> / dt, <span class="n">1</span> / dt]
+    <span class="c"># A: three-point second difference</span>
+    A = sparse.diags([<span class="n">1</span>, -<span class="n">2</span>, <span class="n">1</span>], [-<span class="n">1</span>, <span class="n">0</span>, <span class="n">1</span>], shape=(n, n), dtype=float).tolil()
+    A[<span class="n">0</span>, :<span class="n">3</span>] = [<span class="n">1</span>, -<span class="n">2</span>, <span class="n">1</span>];  A[-<span class="n">1</span>, -<span class="n">3</span>:] = [<span class="n">1</span>, -<span class="n">2</span>, <span class="n">1</span>];  A = A / dt**<span class="n">2</span>
+    <span class="c"># w: trapezoidal weights</span>
+    w = np.full(n, dt);  w[[<span class="n">0</span>, -<span class="n">1</span>]] = dt / <span class="n">2</span>
+    <span class="k">return</span> S.tocsr(), D.tocsr(), A.tocsr(), w
+
+<span class="k">def</span> <span class="f">robust_z</span>(v):
+    med = np.median(v, axis=<span class="n">1</span>, keepdims=<span class="k">True</span>)
+    mad = np.median(np.abs(v - med), axis=<span class="n">1</span>, keepdims=<span class="k">True</span>)
+    <span class="k">return</span> (v - med) / (<span class="n">1.4826</span> * mad + <span class="n">1e-12</span>)
+
+<span class="k">def</span> <span class="f">analyse</span>(T, dt=<span class="n">1.0</span>, k=<span class="n">5</span>, thr=<span class="n">3.5</span>, channels=<span class="k">None</span>):
+    m, n = T.shape
+    S, D, A, w = operators(n, dt, k)
+    Ts = (S @ T.T).T                 <span class="c"># Ts = T S^T</span>
+    V  = (D @ Ts.T).T                <span class="c"># V  = Ts D^T   (first rate of change)</span>
+    A2 = (A @ (S @ Ts.T)).T          <span class="c"># A'' = Ts S^T A^T (second rate of change)</span>
+    Q  = T @ w                       <span class="c"># total volume per channel</span>
+    C  = np.cov(V)                   <span class="c"># covariance of the rates</span>
+    lam, U = np.linalg.eigh(C)       <span class="c"># real symmetric -> orthonormal eigenvectors</span>
+    lam, U = lam[::-<span class="n">1</span>], U[:, ::-<span class="n">1</span>]
+    U[:, <span class="n">0</span>] *= np.sign(U[np.abs(U[:, <span class="n">0</span>]).argmax(), <span class="n">0</span>])
+    Z = robust_z(V)
+    flags = np.argwhere(np.abs(Z) > thr)   <span class="c"># (channel, instant) pairs</span>
+    names = channels <span class="k">or</span> [f<span class="s">"ch{i}"</span> <span class="k">for</span> i <span class="k">in</span> range(m)]
+    print(<span class="s">"Total volume:"</span>, {k: round(float(q), <span class="n">1</span>) <span class="k">for</span> k, q <span class="k">in</span> zip(names, Q)})
+    print(f<span class="s">"Dominant direction explains {lam[0] / lam.sum():.1%}:"</span>,
+          {k: round(float(u), <span class="n">3</span>) <span class="k">for</span> k, u <span class="k">in</span> zip(names, U[:, <span class="n">0</span>])})
+    <span class="k">for</span> c, t <span class="k">in</span> flags:
+        kind = <span class="s">"onset"</span> <span class="k">if</span> V[c, t] > <span class="n">0</span> <span class="k">else</span> <span class="s">"recovery"</span>
+        print(f<span class="s">"t={t * dt:6.1f}s  {names[c]:>6}  dT/dt={V[c, t]:9.1f}  z={Z[c, t]:6.2f}  {kind}"</span>)
+    <span class="k">return</span> dict(Ts=Ts, V=V, A2=A2, Q=Q, C=C, eig=(lam, U), Z=Z, flags=flags)
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    rng = np.random.default_rng(<span class="n">7</span>)
+    t = np.arange(<span class="n">300</span>)
+    base = np.array([<span class="n">420</span>, <span class="n">900</span>, <span class="n">60</span>, <span class="n">35</span>])[:, <span class="k">None</span>]
+    burst = np.clip(np.minimum((t - <span class="n">170</span>) / <span class="n">5</span>, (<span class="n">225</span> - t) / <span class="n">5</span>), <span class="n">0</span>, <span class="n">1</span>)
+    T = base * (<span class="n">1</span> + np.array([[<span class="n">4</span>], [<span class="n">0</span>], [<span class="n">4</span>], [<span class="n">0</span>]]) * burst)
+    T = T * (<span class="n">1</span> + <span class="n">0.08</span> * rng.standard_normal(T.shape))
+    analyse(T, channels=[<span class="s">"HTTP"</span>, <span class="s">"HTTPS"</span>, <span class="s">"DNS"</span>, <span class="s">"SSH"</span>])`;
+$("#py").innerHTML = py;
+$("#copyPy").addEventListener("click", async e => {
+  try { await navigator.clipboard.writeText($("#py").textContent); e.target.textContent = "Copied ✓"; }
+  catch { const r = document.createRange(); r.selectNodeContents($("#py")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); e.target.textContent = "Selected, press Ctrl+C"; }
+  setTimeout(() => e.target.textContent = "Copy code", 2200);
+});
+
+/* hero svg */
+(function hero() {
+  const n = 200, xs = [], f = [], fp = [];
+  for (let i = 0; i < n; i++) { const t = i / (n - 1) * 300; xs.push(i / (n - 1) * 400);
+    f.push(1 + 0.08 * Math.sin(t / 9) + 3 * LA.pulse(t, 150, 70, 22)); }
+  for (let i = 0; i < n; i++) fp.push((f[Math.min(n - 1, i + 1)] - f[Math.max(0, i - 1)]) / 2);
+  const yF = v => 200 - v * 42, mx = Math.max(...fp.map(Math.abs)), yP = v => 118 - v / mx * 60;
+  const path = (ys, y) => ys.map((v, i) => `${i ? "L" : "M"}${xs[i].toFixed(1)},${y(v).toFixed(1)}`).join("");
+  $("#heroSvg").innerHTML = `
+    <line x1="0" x2="400" y1="${yF(3.2)}" y2="${yF(3.2)}" stroke="#ff5d6c" stroke-dasharray="4 4" opacity=".7"/>
+    <text x="4" y="${yF(3.2) - 6}" fill="#ff5d6c" font-family="IBM Plex Mono" font-size="10">static threshold</text>
+    <line x1="0" x2="400" y1="118" y2="118" stroke="#22343b"/>
+    <path d="${path(f, yF)}" fill="none" stroke="#5ee6d0" stroke-width="2"/>
+    <path d="${path(fp, yP)}" fill="none" stroke="#ffb347" stroke-width="1.6"/>
+    <circle cx="${xs[103]}" cy="${yP(fp[103])}" r="5" fill="none" stroke="#ffb347" stroke-width="2"><animate attributeName="r" values="4;9;4" dur="2s" repeatCount="indefinite"/></circle>
+    <text x="${xs[103] + 10}" y="${yP(fp[103]) + 4}" fill="#ffb347" font-family="IBM Plex Mono" font-size="10">f′ flags onset</text>`;
+})();
+
+/* ---------- demo ---------- */
+const DEF = {start: 170, dur: 50, mag: 4, ramp: 5, sMag: 1, win: 5, noise: 0.08, thr: 3.5, base: "mad", channels: [0, 2], seed: 7};
+let P = {...DEF, n: 300, dt: 1};
+$("#chanChks").innerHTML = CH.map((c, i) => `<label class="chk"><input type="checkbox" value="${i}"><span class="sw" style="background:${c.color}"></span>${c.name}</label>`).join("");
+const sliders = {bStart: ["start", v => v + " s"], bDur: ["dur", v => v + " s"], bMag: ["mag", v => "×" + (+v).toFixed(1)], bRamp: ["ramp", v => v + " s"],
+  sMag: ["sMag", v => "×" + (+v).toFixed(2)], win: ["win", v => v + " pts"], noise: ["noise", v => "±" + Math.round(v * 100) + "%"], thr: ["thr", v => (+v).toFixed(1)]};
+function syncUI() {
+  for (const [id, [k, f]] of Object.entries(sliders)) { $("#" + id).value = P[k]; $("#" + id + "O").textContent = f(P[k]); }
+  document.querySelectorAll("#chanChks input").forEach(c => c.checked = P.channels.includes(+c.value));
+  document.querySelectorAll("#baseSeg button").forEach(b => b.classList.toggle("on", b.dataset.v === P.base));
+}
+for (const [id, [k, f]] of Object.entries(sliders)) $("#" + id).addEventListener("input", e => { P[k] = +e.target.value; $("#" + id + "O").textContent = f(P[k]); schedule(); });
+$("#chanChks").addEventListener("change", () => { P.channels = [...document.querySelectorAll("#chanChks input:checked")].map(c => +c.value); schedule(); });
+$("#baseSeg").addEventListener("click", e => { if (!e.target.dataset.v) return; P.base = e.target.dataset.v; syncUI(); schedule(); });
+$("#reseed").addEventListener("click", () => { P.seed = (Math.random() * 1e9) | 0; schedule(); });
+$("#reset").addEventListener("click", () => { P = {...DEF, n: 300, dt: 1}; syncUI(); schedule(); });
+
+let raf = 0; const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(run); };
+let R = null, Traw = null, hoverK = null;
+const charts = [];
+
+/* canvas chart */
+function makeChart(id, legendId) {
+  const cv = $("#" + id), ctx = cv.getContext("2d"), ch = {cv, ctx, series: [], bands: [], marks: [], hlines: [], fmt: v => v.toFixed(0), legendId};
+  cv.addEventListener("mousemove", e => { const r = cv.getBoundingClientRect(); const x = e.clientX - r.left;
+    const k = Math.round((x - ch.pl) / (r.width - ch.pl - 8) * (P.n - 1)); hoverK = k >= 0 && k < P.n ? k : null; drawAll(); showTip(e, ch); });
+  cv.addEventListener("mouseleave", () => { hoverK = null; drawAll(); $("#tip").style.display = "none"; });
+  charts.push(ch); return ch;
+}
+function showTip(e, ch) {
+  const tip = $("#tip"); if (hoverK == null) { tip.style.display = "none"; return; }
+  tip.innerHTML = `<div class="t">t = ${(hoverK * P.dt).toFixed(0)} s</div>` + ch.series.filter(s => !s.faint).map(s => `<div><span style="color:${s.color}">■</span> ${s.name}: ${ch.fmt(s.data[hoverK])}</div>`).join("");
+  tip.style.display = "block"; const w = tip.offsetWidth;
+  tip.style.left = Math.min(innerWidth - w - 10, e.clientX + 14) + "px"; tip.style.top = (e.clientY + 14) + "px";
+}
+function draw(ch) {
+  const {cv, ctx} = ch, dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== W * dpr || cv.height !== H * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const all = ch.series.flatMap(s => Array.from(s.data)).concat(ch.hlines.map(h => h.y));
+  let lo = Math.min(...all), hi = Math.max(...all); if (ch.zeroBase) lo = Math.min(0, lo); if (hi === lo) { hi += 1; lo -= 1; }
+  const pad = (hi - lo) * 0.06; lo -= ch.zeroBase && lo === 0 ? 0 : pad; hi += pad;
+  const pl = ch.pl = 58, pr = 8, pt = 8, pb = 22, n = P.n;
+  const X = k => pl + k / (n - 1) * (W - pl - pr), Y = v => pt + (hi - v) / (hi - lo) * (H - pt - pb);
+  ctx.font = "11px IBM Plex Mono, monospace"; ctx.textBaseline = "middle";
+  // grid
+  const step = niceStep((hi - lo) / 4);
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) { ctx.strokeStyle = Math.abs(v) < step / 1e6 ? "#3a5560" : "#1c2c32"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pl, Y(v)); ctx.lineTo(W - pr, Y(v)); ctx.stroke(); ctx.fillStyle = "#6f878e"; ctx.textAlign = "right"; ctx.fillText(short(v), pl - 6, Y(v)); }
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let t = 0; t <= n; t += 50) { ctx.fillStyle = "#6f878e"; ctx.fillText(t + "s", X(Math.min(t, n - 1)), H - pb + 6); }
+  // bands
+  ch.bands.forEach(b => { ctx.fillStyle = b.color; ctx.fillRect(X(b.a), pt, X(b.b) - X(b.a), H - pt - pb); });
+  ch.hlines.forEach(h => { ctx.strokeStyle = h.color; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(pl, Y(h.y)); ctx.lineTo(W - pr, Y(h.y)); ctx.stroke(); ctx.setLineDash([]); });
+  // series
+  ch.series.forEach(s => { ctx.strokeStyle = s.color; ctx.globalAlpha = s.faint ? 0.28 : 1; ctx.lineWidth = s.faint ? 1 : 1.7; ctx.beginPath();
+    for (let k = 0; k < n; k++) { const x = X(k), y = Y(s.data[k]); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); ctx.globalAlpha = 1; });
+  // marks
+  ch.marks.forEach(m => { ctx.fillStyle = "#ff5d6c"; ctx.strokeStyle = "#0a1114"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(X(m.k), Y(m.y), 3.6, 0, 7); ctx.fill(); ctx.stroke(); });
+  if (hoverK != null) { ctx.strokeStyle = "#a9bcc1"; ctx.globalAlpha = .5; ctx.beginPath(); ctx.moveTo(X(hoverK), pt); ctx.lineTo(X(hoverK), H - pb); ctx.stroke(); ctx.globalAlpha = 1; }
+  $("#" + ch.legendId).innerHTML = (ch.legend || ch.series.filter(s => !s.faint)).map(s => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("");
+}
+function niceStep(x) { const p = 10 ** Math.floor(Math.log10(x || 1)), r = x / p; return (r < 1.5 ? 1 : r < 3.5 ? 2 : r < 7.5 ? 5 : 10) * p; }
+function short(v) { const a = Math.abs(v); return a >= 1e6 ? (v / 1e6).toFixed(1) + "M" : a >= 1e3 ? (v / 1e3).toFixed(a >= 1e4 ? 0 : 1) + "k" : a < 10 && a > 0 ? v.toFixed(1) : v.toFixed(0); }
+const drawAll = () => charts.forEach(draw);
+
+const c0 = makeChart("c0", "lg0"), c1 = makeChart("c1", "lg1"), c2 = makeChart("c2", "lg2"), c3 = makeChart("c3", "lg3"), c4 = makeChart("c4", "lg4");
+c0.zeroBase = true; c4.zeroBase = true; c4.fmt = v => (v / 1024).toFixed(2) + " MB";
+c0.fmt = c1.fmt = v => v.toFixed(0) + " KB/s"; c1.fmt = v => v.toFixed(1) + " KB/s²"; c3.fmt = v => v.toFixed(1) + " KB/s³"; c2.fmt = v => v.toFixed(2);
+
+/* events grouping + evaluation */
+function evaluate(flags) {
+  const s = P.start, e = P.start + P.dur + P.ramp, tol = Math.max(3, P.win);
+  const inMain = t => t >= s - tol && t <= e + tol, inSec = t => t >= 70 - tol && t <= 96 + tol;
+  const act = P.channels.length > 0;
+  const mainHits = act && P.mag > 0 ? flags.filter(f => inMain(f.t)) : [];
+  const secHits = act && P.sMag > 0 ? flags.filter(f => inSec(f.t)) : [];
+  const fa = flags.filter(f => !(act && P.mag > 0 && inMain(f.t)) && !(act && P.sMag > 0 && inSec(f.t)));
+  const onset = mainHits.filter(f => f.v > 0).sort((a, b) => a.t - b.t)[0];
+  const rec = mainHits.filter(f => f.v < 0).sort((a, b) => a.t - b.t)[0];
+  return {onset, rec, mainHits, secHits, fa, s, e};
+}
+
+function run() {
+  Traw = LA.synth(P); R = LA.analyse(Traw, P);
+  const n = P.n, ev = evaluate(R.flags);
+  const bands = [];
+  if (P.channels.length && P.mag > 0) bands.push({a: P.start, b: Math.min(n - 1, P.start + P.dur + P.ramp), color: "rgba(255,179,71,.07)"});
+  if (P.channels.length && P.sMag > 0) bands.push({a: 70, b: 96, color: "rgba(213,140,255,.07)"});
+
+  c0.series = CH.flatMap((c, i) => [{name: c.name + " raw", color: c.color, data: Traw[i], faint: true}, {name: c.name, color: c.color, data: R.Ts[i]}]);
+  c1.series = CH.map((c, i) => ({name: c.name, color: c.color, data: R.V[i]}));
+  c2.series = CH.map((c, i) => ({name: c.name, color: c.color, data: R.Z[i]}));
+  c3.series = CH.map((c, i) => ({name: c.name, color: c.color, data: R.A2[i]}));
+  c4.series = CH.map((c, i) => ({name: c.name, color: c.color, data: R.cum[i]}));
+  charts.forEach(ch => { ch.bands = bands; ch.marks = []; ch.hlines = []; });
+  c1.marks = R.flags.map(f => ({k: f.k, y: R.V[f.ch][f.k]}));
+  c2.marks = R.flags.map(f => ({k: f.k, y: R.Z[f.ch][f.k]}));
+  c2.hlines = [{y: P.thr, color: "#ff5d6c"}, {y: -P.thr, color: "#ff5d6c"}];
+  c2.legend = [...c2.series, {name: "±threshold", color: "#ff5d6c"}];
+  $("#zf").textContent = P.base === "mad" ? "z = (v − med) / (1.4826·MAD)" : "z = (v − mean) / σ";
+  drawAll();
+
+  /* status */
+  const onsetTxt = ev.onset ? `${ev.onset.t} s` : "—", lag = ev.onset ? ev.onset.t - P.start : null;
+  // threshold alarm comparison: first time the total traffic exceeds 1.5× its median
+  const tot = Traw[0].map((_, k) => Traw.reduce((s, r) => s + r[k], 0)), medTot = LA.median(tot);
+  let thrAlarm = null; for (let k = 0; k < n; k++) if (tot[k] > 1.5 * medTot) { thrAlarm = k * P.dt; break; }
+  const stats = [
+    {k: "Flagged instants", v: R.flags.length, s: `${new Set(R.flags.map(f => f.k)).size} unique times`, c: R.flags.length ? "alert" : ""},
+    {k: "Onset detected", v: onsetTxt, s: lag != null ? `${lag >= 0 ? "+" : ""}${lag} s vs true start` : (P.channels.length && P.mag > 0 ? "missed" : "no burst injected"), c: ev.onset ? "ok" : ""},
+    {k: "Static 1.5× alarm", v: thrAlarm != null ? `${thrAlarm} s` : "never", s: "total volume > 1.5 × median", c: ""},
+    {k: "False alarms", v: ev.fa.length, s: "outside reference windows", c: ev.fa.length ? "alert" : "ok"},
+  ];
+  $("#status").innerHTML = stats.map(s => `<div class="stat ${s.c}"><div class="k">${s.k}</div><div class="v">${s.v}</div><div class="s">${s.s}</div></div>`).join("");
+  let vd = [];
+  if (!P.channels.length || P.mag === 0) vd.push("No main burst is injected. Choose at least one channel and a magnitude above zero.");
+  else {
+    vd.push(ev.onset ? `The <b>onset</b> was detected at <b>t = ${ev.onset.t} s</b> on ${CH[ev.onset.ch].name}, ${lag <= 0 ? "while" : lag + " s after"} the burst began to ramp (true start ${P.start} s).` : `The main burst's onset was <b>missed</b> at |z| > ${P.thr}.`);
+    if (ev.rec) vd.push(`<b>Recovery</b> (f′ < 0) was flagged at t = ${ev.rec.t} s.`);
+    if (thrAlarm != null && ev.onset) vd.push(thrAlarm > ev.onset.t ? `The static threshold fired <b>${thrAlarm - ev.onset.t} s later</b>.` : thrAlarm < ev.onset.t ? `The static threshold fired earlier (t = ${thrAlarm} s), probably on noise or the secondary surge.` : `The static threshold fired at the same time.`);
+  }
+  if (P.channels.length && P.sMag > 0) vd.push(ev.secHits.length ? `The secondary surge at 70 s <b>was caught</b> (${ev.secHits.length} flags).` : `The secondary surge at 70 s was <b>missed</b>${P.base === "std" ? ". That is masking: the main burst inflated σ. Switch to median/MAD." : "."}`);
+  $("#verdict").innerHTML = vd.join(" ");
+
+  /* volume table */
+  const Qmax = Math.max(...R.Q);
+  $("#volT").innerHTML = `<tr><th>Channel</th><th class="n">Q (MB)</th><th style="width:40%">Share</th></tr>` + CH.map((c, i) =>
+    `<tr><td style="color:${c.color}">${c.name}</td><td class="n">${(R.Q[i] / 1024).toFixed(2)}</td><td><div class="bar"><i style="width:${R.Q[i] / Qmax * 100}%;background:${c.color}"></i></div></td></tr>`).join("")
+    + `<tr><td>Total</td><td class="n">${(R.Q.reduce((a, b) => a + b, 0) / 1024).toFixed(2)}</td><td style="color:var(--ink3);font-size:11.5px">Δt = ${P.dt} s, trapezoid rule</td></tr>`;
+
+  /* eigen */
+  const sumL = R.eig.reduce((s, e) => s + Math.max(0, e.val), 0), top = R.eig[0];
+  const comp = top.vec.map((x, i) => ({i, x})).sort((a, b) => Math.abs(b.x) - Math.abs(a.x));
+  $("#eigOut").innerHTML = `<table><tr><th>λ</th><th class="n">value</th><th class="n">explained</th></tr>${R.eig.map((e, j) =>
+    `<tr><td>λ${"₁₂₃₄"[j]}</td><td class="n">${e.val.toExponential(2)}</td><td class="n">${(Math.max(0, e.val) / sumL * 100).toFixed(1)}%</td></tr>`).join("")}</table>
+    <div style="margin-top:12px;font-size:13px;color:var(--ink2)">Dominant eigenvector <b style="color:var(--ink)">u₁</b>: the make-up of the main direction of change</div>
+    ${CH.map((c, i) => `<div style="display:grid;grid-template-columns:52px 1fr 56px;gap:8px;align-items:center;font-family:var(--mono);font-size:12.5px;margin-top:6px"><span style="color:${c.color}">${c.name}</span><div class="bar" style="margin:0"><i style="width:${Math.abs(top.vec[i]) * 100}%;background:${c.color}"></i></div><span style="text-align:right">${top.vec[i].toFixed(3)}</span></div>`).join("")}
+    <p class="hint" style="margin-top:10px">u₁ is led by ${comp.filter(c => Math.abs(c.x) > 0.3).map(c => CH[c.i].name).join(" + ") || CH[comp[0].i].name} and explains ${(top.val / sumL * 100).toFixed(1)}% of all variation in the rates.</p>`;
+
+  /* flags table */
+  $("#flagCount").textContent = `${R.flags.length} flags · ${P.base === "mad" ? "median/MAD" : "mean/σ"} · |z| > ${P.thr}`;
+  const rows = R.flags.slice().sort((a, b) => a.t - b.t || a.ch - b.ch);
+  const label = f => (P.channels.length && P.mag > 0 && f.t >= ev.s - Math.max(3, P.win) && f.t <= ev.e + Math.max(3, P.win)) ? "main burst" :
+    (P.channels.length && P.sMag > 0 && f.t >= 70 - Math.max(3, P.win) && f.t <= 96 + Math.max(3, P.win)) ? "secondary" : "false alarm";
+  $("#flagT").innerHTML = rows.length ? `<tr><th>t (s)</th><th>Channel</th><th class="n">dT/dt (KB/s²)</th><th class="n">z</th><th>Direction</th><th>Matches</th></tr>` + rows.map(f =>
+    `<tr><td>${f.t}</td><td style="color:${CH[f.ch].color}">${CH[f.ch].name}</td><td class="n">${f.v.toFixed(1)}</td><td class="n">${f.z.toFixed(2)}</td>
+     <td><span class="pill ${f.v > 0 ? "up" : "dn"}">${f.v > 0 ? "▲ onset" : "▼ recovery"}</span></td><td style="color:${label(f) === "false alarm" ? "var(--red)" : "var(--ink2)"}">${label(f)}</td></tr>`).join("")
+    : `<tr><td class="empty">No instant exceeds the threshold.</td></tr>`;
+}
+
+/* operator previews (static, Δt = 1, k = 3) */
+(function ops() {
+  const k = 8, frac = v => { if (Math.abs(v) < 1e-12) return "0"; const m = {"0.5": "½", "-0.5": "−½", "1": "1", "-1": "−1", "-2": "−2", "2": "2"};
+    const key = String(+v.toFixed(4)); if (m[key]) return m[key]; if (Math.abs(v - 1 / 3) < 1e-6) return "⅓"; if (Math.abs(v - 0.25) < 1e-6) return "¼"; if (Math.abs(v - 0.2) < 1e-6) return "⅕"; return v.toFixed(2); };
+  const show = (M, t, d) => `<div><div class="mono" style="font-size:12.5px;color:var(--cyan);margin-bottom:6px">${t}</div><div style="overflow-x:auto">${mat(M.slice(0, k).map(r => Array.from(r.slice(0, k)).map(frac)))}</div><p class="hint">${d}</p></div>`;
+  $("#opsView").innerHTML = show(LA.smoothing(20, 3), "S (window 3)", "Each row sums to 1, so the total volume is unchanged.") +
+    show(LA.diff1(20, 1), "D (first difference)", "Central ½ coefficients inside, one-sided differences in the first and last rows.") +
+    show(LA.diff2(20, 1), "A (second difference)", "The [1, −2, 1] stencil, shifted in the boundary rows.");
+})();
+
+syncUI(); run();
+addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(drawAll, 120); });
+document.fonts && document.fonts.ready.then(drawAll);
+
+/* reveal on scroll */
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), {threshold: .08});
+document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+})();
+</script>
+</body>
+</html>
